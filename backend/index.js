@@ -17,5 +17,8 @@ app.use(express.json());
 const userRoutes = require('./routes/userRoutes');
 app.use('/auth', userRoutes);
 
+const tagRoutes = require('./routes/tagRoutes');
+app.use('/tags', tagRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
