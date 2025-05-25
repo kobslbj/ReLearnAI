@@ -2,10 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const db = require('./db/db');
 
-const tagSQL = fs.readFileSync(path.join(__dirname, '../db/tags.sql'), 'utf8');
+// const userSQL = fs.readFileSync(path.join(__dirname, '../db/users.sql'), 'utf8');
+const tagSQL = fs.readFileSync(path.join(__dirname, './db/tags.sql'), 'utf8');
 
 // Read and execute users.sql
 const usersSql = fs.readFileSync(path.join(__dirname, './db/users.sql'), 'utf8');
+// Read and execute questions.sql
+const questionsSql = fs.readFileSync(path.join(__dirname, './db/questions.sql'), 'utf8');
 
 // Execute both SQL files in sequence
 db.query(usersSql)
@@ -15,6 +18,10 @@ db.query(usersSql)
   })
   .then(() => {
     console.log('✅ Questions and folders tables initialized.');
+    return db.query(tagSQL);
+  })
+  .then(() => {
+    console.log('✅ Tags tables initialized.')
     process.exit(0);
   })
   .catch((err) => {

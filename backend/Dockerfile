@@ -1,7 +1,7 @@
 FROM node:20
 
 # Install netcat for database connection checking
-RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y netcat-traditional
 
 WORKDIR /app
 

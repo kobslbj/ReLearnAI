@@ -43,4 +43,6 @@ app.listen(PORT, () => {
   console.log('- POST /auth/register');
   console.log('- POST /auth/login');
   console.log('- POST /api/question-set');
+  // console.log('- POST /tags');
+  console.log('- GET /tags');
 });
