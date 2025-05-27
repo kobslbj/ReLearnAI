@@ -19,6 +19,22 @@ const User = {
   async findById(id) {
     const res = await db.query('SELECT * FROM users WHERE id = $1', [id]);
     return res.rows[0];
+  },
+
+  async updateTokenId(userId, tokenId) {
+    const res = await db.query(
+      'UPDATE users SET token_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [tokenId, userId]
+    );
+    return res.rows[0];
+  },
+
+  async clearTokenId(userId) {
+    const res = await db.query(
+      'UPDATE users SET token_id = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING *',
+      [userId]
+    );
+    return res.rows[0];
   }
 };
 

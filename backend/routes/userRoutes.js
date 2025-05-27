@@ -5,6 +5,8 @@ const auth = require('../middleware/auth');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/logout', authController.logout);
+router.post('/logout-all', auth, authController.logoutAll);
 
 // Example of a protected route
 router.get('/me', auth, (req, res) => {
