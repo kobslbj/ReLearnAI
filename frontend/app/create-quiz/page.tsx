@@ -19,6 +19,12 @@ interface Question {
   correctAnswer: string
   userAnswer: string
   note: string
+  options: {
+    A: string
+    B: string
+    C: string
+    D: string
+  }
 }
 
 export default function CreateQuizPage() {
@@ -26,23 +32,66 @@ export default function CreateQuizPage() {
   const [title, setTitle] = useState("")
   const [subject, setSubject] = useState<string>("")
   const [questions, setQuestions] = useState<Question[]>([
-    { id: 1, content: "", correctAnswer: "", userAnswer: "", note: "" },
+    { id: 1, content: "", correctAnswer: "", userAnswer: "", note: "", options: { A: "", B: "", C: "", D: "" } },
   ])
 
   const addQuestion = () => {
     const newId = questions.length + 1
-    setQuestions([...questions, { id: newId, content: "", correctAnswer: "", userAnswer: "", note: "" }])
+    setQuestions([...questions, { id: newId, content: "", correctAnswer: "", userAnswer: "", note: "", options: { A: "", B: "", C: "", D: "" } }])
   }
 
   const updateQuestion = (id: number, field: keyof Question, value: string) => {
     setQuestions(questions.map((q) => (q.id === id ? { ...q, [field]: value } : q)))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // 在實際應用中，這裡應該處理保存題目的邏輯
-    // 這裡為了演示，我們直接導航到首頁
-    router.push("/")
+    
+    if (!title || !subject || questions.some(q => !q.content || !q.correctAnswer)) {
+      alert("請填寫所有必要欄位")
+      return
+    }
+    
+    setIsSubmitting(true)
+    
+    try {
+      // Transform the data to match the API's expected format
+      const formattedQuestions = questions.map(q => ({
+        description: q.content,
+        options: q.options,
+        answer: q.correctAnswer,
+        user_answer: q.userAnswer,
+        note: q.note
+      }))
+      
+      const response = await fetch("/api/question-set", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          folder_name: title,
+          tag_name: subject,
+          questions: formattedQuestions
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.status === 201 && data.success) {
+        alert("題目集創建成功！")
+        router.push("/")
+      } else {
+        alert(`創建失敗: ${data.error || '未知錯誤'}`)
+      }
+    } catch (error) {
+      console.error("Error submitting question set:", error)
+      alert("提交時發生錯誤，請稍後再試")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -86,6 +135,97 @@ export default function CreateQuizPage() {
                 onChange={(e) => updateQuestion(question.id, "content", e.target.value)}
                 className="mb-4"
               />
+              
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <div>
+                  <div className="font-medium mb-2">選項 A</div>
+                  <Input 
+                    placeholder="請輸入選項 A" 
+                    value={question.options.A}
+                    onChange={(e) => {
+                      const updatedQuestions = questions.map(q => {
+                        if (q.id === question.id) {
+                          return {
+                            ...q,
+                            options: {
+                              ...q.options,
+                              A: e.target.value
+                            }
+                          }
+                        }
+                        return q
+                      })
+                      setQuestions(updatedQuestions)
+                    }}
+                  />
+                </div>
+                <div>
+                  <div className="font-medium mb-2">選項 B</div>
+                  <Input 
+                    placeholder="請輸入選項 B" 
+                    value={question.options.B}
+                    onChange={(e) => {
+                      const updatedQuestions = questions.map(q => {
+                        if (q.id === question.id) {
+                          return {
+                            ...q,
+                            options: {
+                              ...q.options,
+                              B: e.target.value
+                            }
+                          }
+                        }
+                        return q
+                      })
+                      setQuestions(updatedQuestions)
+                    }}
+                  />
+                </div>
+                <div>
+                  <div className="font-medium mb-2">選項 C</div>
+                  <Input 
+                    placeholder="請輸入選項 C" 
+                    value={question.options.C}
+                    onChange={(e) => {
+                      const updatedQuestions = questions.map(q => {
+                        if (q.id === question.id) {
+                          return {
+                            ...q,
+                            options: {
+                              ...q.options,
+                              C: e.target.value
+                            }
+                          }
+                        }
+                        return q
+                      })
+                      setQuestions(updatedQuestions)
+                    }}
+                  />
+                </div>
+                <div>
+                  <div className="font-medium mb-2">選項 D</div>
+                  <Input 
+                    placeholder="請輸入選項 D" 
+                    value={question.options.D}
+                    onChange={(e) => {
+                      const updatedQuestions = questions.map(q => {
+                        if (q.id === question.id) {
+                          return {
+                            ...q,
+                            options: {
+                              ...q.options,
+                              D: e.target.value
+                            }
+                          }
+                        }
+                        return q
+                      })
+                      setQuestions(updatedQuestions)
+                    }}
+                  />
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 gap-4 mb-4">
                 <div>
@@ -165,8 +305,12 @@ export default function CreateQuizPage() {
         </div>
 
         <div className="flex justify-end">
-          <Button type="submit" className="bg-gray-900 hover:bg-gray-800">
-            建立
+          <Button 
+            type="submit" 
+            className="bg-gray-900 hover:bg-gray-800"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "處理中..." : "建立"}
           </Button>
         </div>
       </form>
