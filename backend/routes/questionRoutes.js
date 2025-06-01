@@ -89,6 +89,6 @@ router.post('/debug-auth-header', (req, res) => {
 router.post('/question-set', questionController.createQuestionSet);
 
 // Get all questions for a user
-router.post('/get-all-questions', questionController.getAllQuestions);
+router.get('/get-all-questions/:user_id', questionController.getAllQuestions);
 
 module.exports = router; 

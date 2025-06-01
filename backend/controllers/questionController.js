@@ -49,11 +49,11 @@ exports.createQuestionSet = async (req, res) => {
 };
 
 exports.getAllQuestions = async (req, res) => {
-  const { user_id } = req.body;
+  const { user_id } = req.params;
   
   // Basic validation
   if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
+    return res.status(400).json({ error: 'user_id is required in URL parameter' });
   }
 
   try {
