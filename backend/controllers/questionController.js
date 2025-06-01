@@ -57,13 +57,19 @@ exports.getAllQuestions = async (req, res) => {
   }
 
   try {
-    const questions = await QuestionSet.getAllQuestionsByUserId(user_id);
+    console.log('Fetching questions for user_id:', user_id);
+    const folders = await QuestionSet.getAllQuestionsByUserId(user_id);
+    console.log('Retrieved folders:', folders);
+    
+    // Calculate total questions count
+    const totalQuestions = folders.reduce((total, folder) => total + folder.questions.length, 0);
     
     res.status(200).json({
       message: 'Questions retrieved successfully',
       data: {
-        questions,
-        total_count: questions.length
+        folders,
+        total_folders: folders.length,
+        total_questions: totalQuestions
       }
     });
   } catch (err) {

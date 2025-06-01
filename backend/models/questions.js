@@ -42,6 +42,23 @@ class QuestionSet {
   }
 
   static async createQuestion(folderId, description, options, answer, userAnswer, note) {
+    // For JSONB columns, PostgreSQL handles JSON conversion automatically
+    // We should pass the object directly, not stringify it
+    let processedOptions;
+    
+    if (typeof options === 'object' && options !== null) {
+      processedOptions = options;
+    } else if (typeof options === 'string') {
+      try {
+        processedOptions = JSON.parse(options);
+      } catch (error) {
+        console.warn('Invalid JSON string for options, using empty object:', error.message);
+        processedOptions = {};
+      }
+    } else {
+      processedOptions = {};
+    }
+
     const query = `
       INSERT INTO questions (folder_id, description, options, answer, user_answer, note)
       VALUES ($1, $2, $3, $4, $5, $6)
@@ -50,7 +67,7 @@ class QuestionSet {
     const result = await db.query(query, [
       folderId,
       description,
-      JSON.stringify(options),
+      processedOptions, // Pass object directly for JSONB
       answer,
       userAnswer,
       note
@@ -112,6 +129,7 @@ class QuestionSet {
   }
 
   static async getAllQuestionsByUserId(userId) {
+    console.log('DEBUG: Querying for userId:', userId);
     const query = `
       SELECT 
         q.id as question_id,
@@ -131,14 +149,39 @@ class QuestionSet {
       ORDER BY f.id ASC, q.id ASC
     `;
     const result = await db.query(query, [userId]);
+    console.log('DEBUG: Raw query result rows count:', result.rows.length);
+    console.log('DEBUG: Raw query result:', result.rows);
     
-    // Parse the options JSON for each question
-    const questions = result.rows.map(row => ({
-      ...row,
-      options: JSON.parse(row.options)
-    }));
+    // Group questions by folder
+    const foldersMap = new Map();
     
-    return questions;
+    result.rows.forEach(row => {
+      const folderId = row.folder_id;
+      
+      if (!foldersMap.has(folderId)) {
+        foldersMap.set(folderId, {
+          folder_id: row.folder_id,
+          folder_title: row.folder_title,
+          tag_id: row.tag_id,
+          tag_name: row.tag_name,
+          questions: []
+        });
+      }
+      
+      foldersMap.get(folderId).questions.push({
+        question_id: row.question_id,
+        description: row.description,
+        options: row.options,
+        answer: row.answer,
+        user_answer: row.user_answer,
+        note: row.note
+      });
+    });
+    
+    // Convert map to array and return
+    const finalResult = Array.from(foldersMap.values());
+    console.log('DEBUG: Final structured result:', finalResult);
+    return finalResult;
   }
 }
 
