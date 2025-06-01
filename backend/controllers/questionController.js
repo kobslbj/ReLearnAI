@@ -76,4 +76,30 @@ exports.getAllQuestions = async (req, res) => {
     console.error('Error retrieving questions:', err);
     res.status(500).json({ error: 'Failed to retrieve questions' });
   }
+};
+
+exports.getAllTags = async (req, res) => {
+  const { user_id } = req.params;
+  
+  // Basic validation
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required in URL parameter' });
+  }
+
+  try {
+    console.log('Fetching tags for user_id:', user_id);
+    const tags = await QuestionSet.getAllTagsByUserId(user_id);
+    console.log('Retrieved tags:', tags);
+    
+    res.status(200).json({
+      message: 'Tags retrieved successfully',
+      data: {
+        tags,
+        total_tags: tags.length
+      }
+    });
+  } catch (err) {
+    console.error('Error retrieving tags:', err);
+    res.status(500).json({ error: 'Failed to retrieve tags' });
+  }
 }; 

@@ -183,6 +183,25 @@ class QuestionSet {
     console.log('DEBUG: Final structured result:', finalResult);
     return finalResult;
   }
+
+  static async getAllTagsByUserId(userId) {
+    console.log('DEBUG: Querying tags for userId:', userId);
+    const query = `
+      SELECT 
+        id as tag_id,
+        name as tag_name,
+        created_at,
+        updated_at
+      FROM tags
+      WHERE user_id = $1
+      ORDER BY created_at ASC
+    `;
+    const result = await db.query(query, [userId]);
+    console.log('DEBUG: Raw tags query result rows count:', result.rows.length);
+    console.log('DEBUG: Raw tags query result:', result.rows);
+    
+    return result.rows;
+  }
 }
 
 module.exports = QuestionSet; 

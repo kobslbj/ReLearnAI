@@ -91,4 +91,7 @@ router.post('/question-set', questionController.createQuestionSet);
 // Get all questions for a user
 router.get('/get-all-questions/:user_id', questionController.getAllQuestions);
 
+// Get all tags for a user
+router.get('/get-all-tags/:user_id', questionController.getAllTags);
+
 module.exports = router; 
