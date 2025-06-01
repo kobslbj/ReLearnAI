@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CalendarIcon, Tag } from "lucide-react"
+import { CalendarIcon, LogOut, Tag } from "lucide-react"
+import { signOut } from "@/app/actions/auth"
 
 type Subject = "數學" | "英文" | "物理"
 
@@ -18,7 +20,21 @@ interface Quiz {
 }
 
 export function HomePage() {
+  const router = useRouter()
   const [filter, setFilter] = useState<Subject | "all">("all")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const handleSignOut = async () => {
+    setIsLoading(true)
+    try {
+      await signOut()
+      router.push('/login')
+    } catch (error) {
+      console.error('Sign out error:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // 模擬的測驗數據
   const quizzes: Quiz[] = [
@@ -35,13 +51,25 @@ export function HomePage() {
     <div className="container mx-auto px-4 py-8">
       <header className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">ReLearnAI</h1>
-        <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E9%A6%96%E9%A0%81-FdCoEHnALIf50wdlzKQV8AyxDz6RRe.png"
-          alt="Logo"
-          width={50}
-          height={50}
-          className="rounded-full"
-        />
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSignOut} 
+            disabled={isLoading}
+            className="flex items-center gap-1"
+          >
+            <LogOut className="h-4 w-4" />
+            {isLoading ? '登出中...' : '登出'}
+          </Button>
+          <Image
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%E9%A6%96%E9%A0%81-FdCoEHnALIf50wdlzKQV8AyxDz6RRe.png"
+            alt="Logo"
+            width={50}
+            height={50}
+            className="rounded-full"
+          />
+        </div>
       </header>
 
       <div className="flex justify-between items-center mb-6">

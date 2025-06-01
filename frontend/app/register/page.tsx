@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { signUp } from "../actions/auth"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,6 +18,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,22 +28,21 @@ export default function RegisterPage() {
       setError('兩次密碼不一致');
       return;
     }
+    
+    setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.message || '註冊失敗');
+      const result = await signUp({ name, email, password });
+      
+      if (!result.success) {
+        setError(result.error || '註冊失敗');
         return;
       }
-
+      
       router.push('/login');  // 註冊完成導向登入頁
     } catch (err) {
       setError('系統錯誤，請稍後再試');
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -105,8 +106,8 @@ export default function RegisterPage() {
                 </Link>
               </p>
             </div>
-            <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800">
-              Sign up
+            <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800" disabled={isLoading}>
+              {isLoading ? 'Processing...' : 'Sign up'}
             </Button>
           </form>
         </CardContent>

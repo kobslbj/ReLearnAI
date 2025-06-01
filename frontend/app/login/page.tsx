@@ -9,30 +9,35 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { signIn } from "../actions/auth"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-
-    if (!res.ok) {
-      const { error } = await res.json()
-      setError(error || '登入失敗')
-      return
+    setIsLoading(true)
+    
+    try {
+      const result = await signIn({ email, password })
+      
+      if (!result.success) {
+        setError(result.error || '登入失敗')
+        return
+      }
+      
+      // 成功時，Cookie 已經被伺服器端儲存，直接跳轉即可
+      router.push('/')
+    } catch (err) {
+      setError('系統錯誤，請稍後再試')
+    } finally {
+      setIsLoading(false)
     }
-
-    // 成功時，Cookie 已經被瀏覽器儲存，直接跳轉即可
-    router.push('/')
   }
 
   return (
@@ -73,8 +78,8 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-            <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800">
-              Sign up
+            <Button type="submit" className="w-full bg-gray-900 hover:bg-gray-800" disabled={isLoading}>
+              {isLoading ? 'Processing...' : 'Login'}
             </Button>
           </form>
         </CardContent>
