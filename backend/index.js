@@ -82,4 +82,5 @@ app.listen(PORT, '0.0.0.0', (err) => {
   console.log('- GET /auth/me');
   console.log('- GET /api/test');
   console.log('- POST /api/question-set');
+  console.log('- POST /api/get-all-questions');
 });

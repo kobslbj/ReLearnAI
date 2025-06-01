@@ -1,12 +1,16 @@
 const QuestionSet = require('../models/questions');
 
 exports.createQuestionSet = async (req, res) => {
-  const { folder_name, tag_name, questions } = req.body;
-  const userId = req.user.id; // From auth middleware
+  const { folder_name, tag_name, questions, user_id } = req.body;
+  const userId = user_id || (req.user && req.user.id); // Support both ways
 
   // Basic validation
   if (!folder_name || !tag_name || !questions || !Array.isArray(questions)) {
     return res.status(400).json({ error: 'Invalid request payload' });
+  }
+
+  if (!userId) {
+    return res.status(400).json({ error: 'user_id is required when not authenticated' });
   }
 
   // Validate each question
@@ -31,10 +35,39 @@ exports.createQuestionSet = async (req, res) => {
     const result = await QuestionSet.createQuestionSet(folder_name, tag_name, questions, userId);
     res.status(201).json({
       message: 'Question set created successfully',
-      data: result
+      data: result,
+      summary: {
+        folder: result.isNewFolder ? `Created new folder: ${folder_name}` : `Used existing folder: ${folder_name}`,
+        tag: result.isNewTag ? `Created new tag: ${tag_name}` : `Used existing tag: ${tag_name}`,
+        questions_added: questions.length
+      }
     });
   } catch (err) {
     console.error('Error creating question set:', err);
     res.status(500).json({ error: 'Failed to create question set' });
+  }
+};
+
+exports.getAllQuestions = async (req, res) => {
+  const { user_id } = req.body;
+  
+  // Basic validation
+  if (!user_id) {
+    return res.status(400).json({ error: 'user_id is required' });
+  }
+
+  try {
+    const questions = await QuestionSet.getAllQuestionsByUserId(user_id);
+    
+    res.status(200).json({
+      message: 'Questions retrieved successfully',
+      data: {
+        questions,
+        total_count: questions.length
+      }
+    });
+  } catch (err) {
+    console.error('Error retrieving questions:', err);
+    res.status(500).json({ error: 'Failed to retrieve questions' });
   }
 }; 
