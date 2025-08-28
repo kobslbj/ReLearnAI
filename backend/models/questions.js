@@ -11,6 +11,15 @@ class QuestionSet {
     return result.rows[0];
   }
 
+  static async findTagByName(name, userId) {
+    const query = `
+      SELECT * FROM tags
+      WHERE name = $1 AND user_id = $2
+    `;
+    const result = await db.query(query, [name, userId]);
+    return result.rows[0] || null;
+  }
+
   static async createTag(name, userId) {
     const query = `
       INSERT INTO tags (name, user_id)
@@ -43,8 +52,12 @@ class QuestionSet {
     try {
       await client.query('BEGIN');
 
-      // Create tag
-      const tag = await this.createTag(tagName, userId);
+      // Check if tag already exists
+      const tag = await this.findTagByName(tagName, userId);
+      if (!tag) {
+        // Create tag if not exists
+        tag = await this.createTag(tagName, userId);
+      }
 
       // Create folder
       const folder = await this.createFolder(folderName, tag.id, userId);
